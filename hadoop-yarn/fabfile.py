@@ -216,7 +216,7 @@ def changeHadoopProperties(fileName, propertyDict):
         currentBakNumber = getLastHadoopPropertiesBackupNumber(fileName) + 1
         run("touch '%(file)s' && cp '%(file)s' '%(file)s.bak%(bakNumber)d'" %
             {"file": fileName, "bakNumber": currentBakNumber})
-            command = "./replaceHadoopProperty.py '%s' %s" % (fileName,
+        command = "./replaceHadoopProperty.py '%s' %s" % (fileName,
                                                               " ".join(["%s %s" % (str(key), str(value)) for key, value in propertyDict.items()]))
         run(command)
 
