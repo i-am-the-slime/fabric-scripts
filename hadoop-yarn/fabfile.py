@@ -238,15 +238,15 @@ def setEnvironmentVariable(variable, value):
             run("touch %s" % ENVIRONMENT_FILE)
         else:
             run("cp %(file)s %(file)s.bak" % {"file": ENVIRONMENT_FILE})
-    lineNumber = run("grep -n 'export\s\+%(var)s\=' '%(file)s' | cut -d : -f 1" %
-                     {"var": variable, "file": ENVIRONMENT_FILE})
-                     try:
-                         lineNumber = int(lineNumber)
-                         run("sed -i \"" + str(lineNumber) + "s@.*@export %(var)s\=%(val)s@\" '%(file)s'" %
-                             {"var": variable, "val": value, "file": ENVIRONMENT_FILE})
-                     except ValueError:
-                         run("echo \"export %(var)s=%(val)s\" >> \"%(file)s\"" %
-                             {"var": variable, "val": value, "file": ENVIRONMENT_FILE})
+    lineNumber = run("grep -n 'export\s\+%(var)s\=' '%(file)s' | cut -d : -f 1"
+                     % {"var": variable, "file": ENVIRONMENT_FILE})
+    try:
+        lineNumber = int(lineNumber)
+        run("sed -i \"" + str(lineNumber) + "s@.*@export %(var)s\=%(val)s@\" '%(file)s'" %
+            {"var": variable, "val": value, "file": ENVIRONMENT_FILE})
+    except ValueError:
+        run("echo \"export %(var)s=%(val)s\" >> \"%(file)s\"" %
+            {"var": variable, "val": value, "file": ENVIRONMENT_FILE})
 
 def operationOnHadoopDaemons(operation):
     with cd(HADOOP_PREFIX):
