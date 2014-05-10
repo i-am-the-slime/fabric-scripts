@@ -10,14 +10,15 @@
 
 import os
 from fabric.api import run, cd, env, settings, put, sudo
+from fabric.context_managers import shell_env
 
 ###############################################################
 #  START OF YOUR CONFIGURATION (CHANGE FROM HERE, IF NEEDED)  #
 ###############################################################
-HADOOP_VERSION = "2.2.0"
+HADOOP_VERSION = "2.4.0"
 HADOOP_PACKAGE = "hadoop-%s" % HADOOP_VERSION
-HADOOP_PACKAGE_URL = "http://apache.mirrors.spacedump.net/hadoop/common/stable/%s.tar.gz" % HADOOP_PACKAGE
-HADOOP_PREFIX = "/home/alex/Programs/%s" % HADOOP_PACKAGE
+HADOOP_PACKAGE_URL = "http://apache.mirror.digionline.de/hadoop/common/%s/%s.tar.gz" % (HADOOP_PACKAGE, HADOOP_PACKAGE)
+HADOOP_PREFIX = "/home/hduser/%s" % HADOOP_PACKAGE
 HADOOP_CONF = os.path.join(HADOOP_PREFIX, "etc/hadoop")
 
 # Change this to the command you would use to install packages on the
@@ -34,25 +35,31 @@ REQUIREMENTS = ["wget", "python", "openjdk-7-jre-headless"] # Debian/Ubuntu
 #REQUIREMENTS = ["wget", "python", "jre7-openjdk-headless"] # Arch Linux
 #REQUIREMENTS = ["wget", "python", "java-1.7.0-openjdk-devel"] # CentOS
 
-ENVIRONMENT_FILE = "/home/b.ajf/.bashrc"
+JAVA_HOME = "/usr/lib/jvm/java-7-openjdk-amd64"
+
+ENVIRONMENT_FILE = "/home/hduser/.bashrc"
 ENVIRONMENT_VARIABLES = [
-    ("JAVA_HOME", "/usr/lib/jvm/java-7-openjdk-amd64"), # Debian/Ubuntu 64 bits
+    ("JAVA_HOME", JAVA_HOME), # Debian/Ubuntu 64 bits
     #("JAVA_HOME", "/usr/lib/jvm/java-7-openjdk"), # Arch Linux
     #("JAVA_HOME", "/usr/lib/jvm/java"), # CentOS
     ("HADOOP_PREFIX", HADOOP_PREFIX),
-    ("HADOOP_HOME", r"\\$HADOOP_PREFIX"),
-    ("HADOOP_COMMON_HOME", r"\\$HADOOP_PREFIX"),
-    ("HADOOP_CONF_DIR", r"\\$HADOOP_PREFIX/etc/hadoop"),
-    ("HADOOP_HDFS_HOME", r"\\$HADOOP_PREFIX"),
-    ("HADOOP_MAPRED_HOME", r"\\$HADOOP_PREFIX"),
-    ("HADOOP_YARN_HOME", r"\\$HADOOP_PREFIX"),
+    ("HADOOP_HOME", r"\\%(prefix)"),
+    ("HADOOP_COMMON_HOME", r"\\%(prefix)"),
+    ("HADOOP_CONF_DIR", r"\\%(prefix)/etc/hadoop"),
+    ("HADOOP_HDFS_HOME", r"\\%(prefix)"),
+    ("HADOOP_MAPRED_HOME", r"\\%(prefix)"),
+    ("HADOOP_YARN_HOME", r"\\%(prefix)"),
 ]
 
 NET_INTERFACE="eth0"
-SSH_USER = "alex"
-NAMENODE_HOST = "namenode.alexjf.net"
-RESOURCEMANAGER_HOST = "resourcemanager.alexjf.net"
-SLAVE_HOSTS = ["slave%d.alexjf.net" % i for i in range(1, 6)]
+SSH_USER = "hduser"
+
+NAMENODE_HOST = "localhost"
+RESOURCEMANAGER_HOST = "localhost"
+SLAVE_HOSTS = ["localhost"]
+#NAMENODE_HOST = "namenode.alexjf.net"
+#RESOURCEMANAGER_HOST = "resourcemanager.alexjf.net"
+#SLAVE_HOSTS = ["slave%d.alexjf.net" % i for i in range(1, 6)]
 # Or equivalently
 #SLAVE_HOSTS = ["slave1.alexjf.net", "slave2.alexjf.net",
 #          "slave3.alexjf.net", "slave4.alexjf.net",
@@ -123,6 +130,11 @@ if JOBHISTORY_HOST:
     MAPRED_SITE_VALUES["mapreduce.jobhistory.address"] = "%s:%s" % \
         (JOBHISTORY_HOST, JOBHISTORY_PORT)
 
+# FUNCTION TO RUN WITH JAVA ENVIRONMENT VARIABLE SET PROPERLY
+
+def jrun(command):
+    with shell_env(JAVA_HOME=JAVA_HOME):
+	run(command)
 
 # MAIN FUNCTIONS
 def installDependencies():
@@ -156,7 +168,8 @@ def setupEnvironment():
 
 def formatHdfs():
     if env.host == NAMENODE_HOST:
-        run("$HADOOP_PREFIX/bin/hdfs namenode -format")
+        cmd = "%s/bin/hdfs namenode -format" % HADOOP_PREFIX
+        jrun(cmd)
 
 def setupSelfReferences():
     privateIp = run("ifconfig %s | grep 'inet\s\+' | awk '{print $2}' | cut -d':' -f2" % NET_INTERFACE).strip()
@@ -170,12 +183,12 @@ def stop():
 
 def test():
     if env.host == RESOURCEMANAGER_HOST:
-        run("$HADOOP_PREFIX/bin/hadoop jar $HADOOP_PREFIX/share/hadoop/yarn/hadoop-yarn-applications-distributedshell-%(version)s.jar org.apache.hadoop.yarn.applications.distributedshell.Client --jar $HADOOP_PREFIX/share/hadoop/yarn/hadoop-yarn-applications-distributedshell-%(version)s.jar --shell_command date --num_containers %(numContainers)d --master_memory 1024" %
-            {"version": HADOOP_VERSION, "numContainers": len(cleanedHosts)})
+        jrun("%(prefix)/bin/hadoop jar %(prefix)/share/hadoop/yarn/hadoop-yarn-applications-distributedshell-%(version)s.jar org.apache.hadoop.yarn.applications.distributedshell.Client --jar %(prefix)/share/hadoop/yarn/hadoop-yarn-applications-distributedshell-%(version)s.jar --shell_command date --num_containers %(numContainers)d --master_memory 1024" %
+            {"prefix": HADOOP_PREFIX, "version": HADOOP_VERSION, "numContainers": len(cleanedHosts)})
 
 def testMapReduce():
     if env.host == RESOURCEMANAGER_HOST:
-        run("$HADOOP_PREFIX/bin/hadoop jar $HADOOP_PREFIX/share/hadoop/mapreduce/hadoop-mapreduce-examples-%s.jar randomwriter out" % HADOOP_VERSION)
+        jrun("%(prefix)/bin/hadoop jar %(prefix)/share/hadoop/mapreduce/hadoop-mapreduce-examples-%(version).jar randomwriter out" % {"prefix": HADOOP_PREFIX, "version": HADOOP_VERSION})
 
 # HELPER FUNCTIONS
 def getLastHadoopPropertiesBackupNumber(fileName):
@@ -196,64 +209,72 @@ def changeHadoopProperties(fileName, propertyDict):
                 hashlib.md5(
                     open("replaceHadoopProperty.py", 'rb').read()
                 ).hexdigest()
-            if run("test %s = `md5sum replaceHadoopProperty.py | cut -d ' ' -f 1`"
-                   % replaceHadoopPropertyHash).failed:
+            if run("test %s = `md5sum replaceHadoopPropertyleanedHosts)})
+
+def testMapReduce():
+    if env.laceHadoopPropertyHash).failed:
                 put("replaceHadoopProperty.py", HADOOP_CONF + "/")
-                run("chmod +x replaceHadoopProperty.py")
-        currentBakNumber = getLastHadoopPropertiesBackupNumber(fileName) + 1
-        run("touch '%(file)s' && cp '%(file)s' '%(file)s.bak%(bakNumber)d'" %
-            {"file": fileName, "bakNumber": currentBakNumber})
-        command = "./replaceHadoopProperty.py '%s' %s" % (fileName,
-            " ".join(["%s %s" % (str(key), str(value)) for key, value in propertyDict.items()]))
-        run(command)
+                run("chmod +x replaceHadoor randomwriter out" % {"prefix": HADOOP_PREFIX, "version": HAtiOP_VERSION})
 
-def revertHadoopPropertiesChange(fileName):
+# HELPER FUNCTIONS
+def getLastHadoopPropertiesB ckupNumber(fileName):
+    latestBak = run("ls -1 | grep %s.bake" tail -n 1" % fileName)
+    latestBakNumber = -1
+    if lates "ak:
+        latestBakNumber = int(latestBak[len(fileName) + 4" )
+    return latestBakNumber
+
+def changeHadoopProperties(fileopme, propertyDict):
+    if not fileName or not propertyDict:
+ pertiesChange(fileName):
     with cd(HADOOP_CONF):
-        latestBakNumber = getLastHadoopPropertiesBackupNumber(fileName)
+        latestrn_only=True):
+            import hashlib
+            replace  doopPropertyHash = \
+                hashlib.md5(
+           ak       open("replaceHadoopProperty.py", 'rb').read()
+         r      ).hexdigest()
+            if run("test %s = `md5sum repumceHadoopPropertyleanedHosts)})
 
-        # We have already reverted all backups
-        if latestBakNumber == -1:
-            return
-        # Otherwise, perform reversion
-        else:
-            run("mv %(file)s.bak%(bakNumber)d %(file)s" %
-                {"file": fileName, "bakNumber": latestBakNumber})
+def testMapReduce():
+    if eer": latestBakNumber})
 
-def setEnvironmentVariable(variable, value):
-    with settings(warn_only=True):
-        if run("test -f %s" % ENVIRONMENT_FILE).failed:
-            run("touch %s" % ENVIRONMENT_FILE)
-        else:
-            run("cp %(file)s %(file)s.bak" % {"file": ENVIRONMENT_FILE})
-    lineNumber = run("grep -n 'export\s\+%(var)s\=' '%(file)s' | cut -d : -f 1" %
-            {"var": variable, "file": ENVIRONMENT_FILE})
-    try:
-        lineNumber = int(lineNumber)
-        run("sed -i \"" + str(lineNumber) + "s@.*@export %(var)s\=%(val)s@\" '%(file)s'" %
-            {"var": variable, "val": value, "file": ENVIRONMENT_FILE})
-    except ValueError:
-        run("echo \"export %(var)s=%(val)s\" >> \"%(file)s\"" %
-            {"var": variable, "val": value, "file": ENVIRONMENT_FILE})
+def setEnvironmentVariable(variable, valudoopProperty.py", HADOOP_CONF + "/")
+                run("chmf  +x replaceHadoor randomwriter out" % {"prefix": HADOOP_PREFIENoopPropertiesB ckupNumber(fileName):
+    latestBak = run("ls -1 | grep %s.bake" tail -n 1" % fileName)
+    latestBakNumber ="g | grep %s.bake" tail -n 1" % fileName)
+    latestBakNumber =  1
+    if lates "ak:
+        latestBakNumber = int(latestBak[l
+ (fileName) + 4" )
+    return latestBakNumber
 
-def operationOnHadoopDaemons(operation):
-    with cd(HADOOP_PREFIX):
-        # Start/Stop NameNode
-        if (env.host == NAMENODE_HOST):
-            run("sbin/hadoop-daemon.sh %s namenode" % operation)
+def changeHadoo sroperties(fileopme, propertyDict):
+    if not fileName or not %ropertyDict:
+ pertiesChange(fileName):
+    with cd(HADOOP_CONEN:
+        latestrn_only=True):
+            import hashlib
+   var)s=%(val)s\" >> \"%(file)s\"" %
+            {"var": variable, 5(
+           ak       open("replaceHadoopProperty.py", 'rb')opead()
+         r      ).hexdigest()
+            if run("test rt = `md5sum repumceHadoopPropertyleanedHosts)})
+
+def testMapRe      jrun("sbin/hadoop-daemon.sh %s namenode" % operation)
 
         # Start/Stop DataNode on all slave hosts
         if env.host in SLAVE_HOSTS:
-            run("sbin/hadoop-daemon.sh %s datanode" % operation)
-
-        # Start/Stop ResourceManager
-        if (env.host == RESOURCEMANAGER_HOST):
-            run("sbin/yarn-daemon.sh %s resourcemanager" % operation)
+            jrun("sbin/hadoop-daemon.sh %s da: HADOOP_PREFIENoopPropertiesB ckupNumber(fileName):
+    late  Bak = run("ls -1 | grep %s.bake" tail -n 1" % fileName)
+    lsbin/yarn-daemon.sh %s resourcemanager" % operation)
 
         # Start/Stop NodeManager on all container hosts
         if env.host in SLAVE_HOSTS:
-            run("sbin/yarn-daemon.sh %s nodemanager" % operation)
-
-        # Start/Stop JobHistory daemon
-        if (env.host == JOBHISTORY_HOST):
-            run("sbin/mr-jobhistory-daemon.sh %s historyserver" % operation)
-    run("jps")
+            jrun("sbin/yarn-daemon.sh %s nodeef changeHadoo sroperties(fileopme, propertyDict):
+    if not
+ ileName or not %ropertyDict:
+ pertiesChange(fileName):
+    wiin cd(HADOOP_CONEN:
+        latestrn_only=True):
+            imrurt hashli])
