@@ -31,7 +31,7 @@ PACKAGE_MANAGER_INSTALL = "apt-get install %s" # Debian/Ubuntu
 # In principle, should just be a JRE for Hadoop, Python
 # for the Hadoop Configuration replacement script and wget
 # to get the Hadoop package
-REQUIREMENTS = ["wget", "python", "openjdk-7-jre-headless"] # Debian/Ubuntu
+REQUIREMENTS = ["wget", "python", "openjdk-7-jdk"] # Debian/Ubuntu
 #REQUIREMENTS = ["wget", "python", "jre7-openjdk-headless"] # Arch Linux
 #REQUIREMENTS = ["wget", "python", "java-1.7.0-openjdk-devel"] # CentOS
 
@@ -43,12 +43,12 @@ ENVIRONMENT_VARIABLES = [
                          #("JAVA_HOME", "/usr/lib/jvm/java-7-openjdk"), # Arch Linux
                          #("JAVA_HOME", "/usr/lib/jvm/java"), # CentOS
                          ("HADOOP_PREFIX", HADOOP_PREFIX),
-                         ("HADOOP_HOME", r"\\%(prefix)"),
-                         ("HADOOP_COMMON_HOME", r"\\%(prefix)"),
-                         ("HADOOP_CONF_DIR", r"\\%(prefix)/etc/hadoop"),
-                         ("HADOOP_HDFS_HOME", r"\\%(prefix)"),
-                         ("HADOOP_MAPRED_HOME", r"\\%(prefix)"),
-                         ("HADOOP_YARN_HOME", r"\\%(prefix)"),
+                         ("HADOOP_HOME", HADOOP_PREFIX),
+                         ("HADOOP_COMMON_HOME",  HADOOP_PREFIX),
+                         ("HADOOP_CONF_DIR",HADOOP_PREFIX+"/etc/hadoop"),
+                         ("HADOOP_HDFS_HOME", HADOOP_PREFIX),
+                         ("HADOOP_MAPRED_HOME", HADOOP_PREFIX),
+                         ("HADOOP_YARN_HOME", HADOOP_PREFIX)
                          ]
 
 NET_INTERFACE="eth0"
