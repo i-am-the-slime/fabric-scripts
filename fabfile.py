@@ -137,6 +137,13 @@ def jrun(command):
         run(command)
 
 # MAIN FUNCTIONS
+def all():
+    installDependencies()
+    install()
+    config()
+    setupEnvironment()
+    formatHdfs()
+
 def installDependencies():
     for requirement in REQUIREMENTS:
         sudo(PACKAGE_MANAGER_INSTALL % requirement)
