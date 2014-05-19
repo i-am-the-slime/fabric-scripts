@@ -21,6 +21,10 @@ HADOOP_PACKAGE_URL = "http://apache.mirror.digionline.de/hadoop/common/%s/%s.tar
 HADOOP_PREFIX = "/home/hduser/%s" % HADOOP_PACKAGE
 HADOOP_CONF = os.path.join(HADOOP_PREFIX, "etc/hadoop")
 
+SPARK_VERSION = "0.9.1"
+SPARK_PACKAGE = "spark-%s" % SPARK_VERSION
+SPARK_PACKAGE_URL = "http://ftp.halifax.rwth-aachen.de/apache/incubator/spark/%s/%s-bin-hadoop2.tgz" % (SPARK_PACKAGE, SPARK_PACKAGE)
+
 # Change this to the command you would use to install packages on the
 # remote hosts.
 PACKAGE_MANAGER_INSTALL = "apt-get install %s" # Debian/Ubuntu
@@ -143,19 +147,23 @@ def all():
     config()
     setupEnvironment()
     formatHdfs()
+    installSpark()
 
 def installDependencies():
     for requirement in REQUIREMENTS:
         sudo(PACKAGE_MANAGER_INSTALL % requirement)
 
-def install():
-    installDirectory = os.path.dirname(HADOOP_PREFIX)
+def installSpark():
+    install(SPARK_PREFIX, SPARK_PACKAGE, SPARK_PACKAGE_URL)
+
+def install(prefix=HADOOP_PREFIX, package=HADOOP_PACKAGE, package_url=HADOOP_PACKAGE_URL):
+    installDirectory = os.path.dirname(prefix)
     run("mkdir -p %s" % installDirectory)
     with cd(installDirectory):
         with settings(warn_only=True):
-            if run("test -f %s.tar.gz" % HADOOP_PACKAGE).failed:
-                run("wget -O %s.tar.gz %s" % (HADOOP_PACKAGE, HADOOP_PACKAGE_URL))
-        run("tar --overwrite -xf %s.tar.gz" % HADOOP_PACKAGE)
+            if run("test -f %s.tar.gz" % package).failed:
+                run("wget -O %s.tar.gz %s" % (package, package_url))
+        run("tar --overwrite -xf %s.tar.gz" % package)
 
 def config():
     changeHadoopProperties("core-site.xml", CORE_SITE_VALUES)
