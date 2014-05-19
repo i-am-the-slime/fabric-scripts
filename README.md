@@ -1,7 +1,6 @@
-# AlexJF's Fabric Scripts
+# New-gen Hadoop Fabric Management Script
 
-These scripts are meant to be run with [Fabric](fabfile.org), a Python tool 
-for SSH application deployment.
+This script installs, configures and manages Hadoop Yarn on a set of nodes in a
+cluster. Root is only necessary to install requirements (java, python, wget).
 
-* [Installing Fabric](http://docs.fabfile.org/en/1.8/#installation)
-* [Overview+Tutorial](http://docs.fabfile.org/en/1.8/tutorial.html)
+For full instructions, check [my Hadoop installation guide](http://www.alexjf.net/blog/distributed-systems/hadoop-yarn-installation-definitive-guide).
