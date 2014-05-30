@@ -23,7 +23,10 @@ HADOOP_CONF = os.path.join(HADOOP_PREFIX, "etc/hadoop")
 
 SPARK_VERSION = "0.9.1"
 SPARK_PACKAGE = "spark-%s" % SPARK_VERSION
-SPARK_PACKAGE_URL = "http://ftp.halifax.rwth-aachen.de/apache/incubator/spark/%s/%s-bin-hadoop2.tgz" % (SPARK_PACKAGE, SPARK_PACKAGE)
+SPARK_ADDR =        "http://ftp.halifax.rwth-aachen.de/apache/spark/spark-0.9.1/spark-0.9.1-bin-hadoop2.tgz"
+SPARK_PACKAGE_URL = "http://ftp.halifax.rwth-aachen.de/apache/spark/%s/%s-bin-hadoop2.tgz" % (SPARK_PACKAGE, SPARK_PACKAGE)
+SPARK_PREFIX = "/home/hduser/%s" % SPARK_PACKAGE
+
 
 # Change this to the command you would use to install packages on the
 # remote hosts.
