@@ -21,9 +21,9 @@ HADOOP_PACKAGE_URL = "http://apache.mirror.digionline.de/hadoop/common/%s/%s.tar
 HADOOP_PREFIX = "/home/hduser/%s" % HADOOP_PACKAGE
 HADOOP_CONF = os.path.join(HADOOP_PREFIX, "etc/hadoop")
 
-SPARK_VERSION = "0.9.1"
+SPARK_VERSION = "1.0.0"
 SPARK_PACKAGE = "spark-%s" % SPARK_VERSION
-SPARK_ADDR =        "http://ftp.halifax.rwth-aachen.de/apache/spark/spark-0.9.1/spark-0.9.1-bin-hadoop2.tgz"
+#SPARK_ADDR =        "http://ftp.halifax.rwth-aachen.de/apache/spark/spark-0.9.1/spark-0.9.1-bin-hadoop2.tgz"
 SPARK_PACKAGE_URL = "http://ftp.halifax.rwth-aachen.de/apache/spark/%s/%s-bin-hadoop2.tgz" % (SPARK_PACKAGE, SPARK_PACKAGE)
 SPARK_PREFIX = "/home/hduser/%s" % SPARK_PACKAGE
 
@@ -51,7 +51,7 @@ ENVIRONMENT_VARIABLES = [
                          #("JAVA_HOME", "/usr/lib/jvm/java"), # CentOS
                          ("HADOOP_PREFIX", HADOOP_PREFIX),
                          ("HADOOP_HOME", HADOOP_PREFIX),
-                         ("HADOOP_COMMON_HOME",  HADOOP_PREFIX),
+                         ("HADOOP_COMMON_HOME", HADOOP_PREFIX),
                          ("HADOOP_CONF_DIR",HADOOP_PREFIX+"/etc/hadoop"),
                          ("HADOOP_HDFS_HOME", HADOOP_PREFIX),
                          ("HADOOP_MAPRED_HOME", HADOOP_PREFIX),
@@ -61,9 +61,9 @@ ENVIRONMENT_VARIABLES = [
 NET_INTERFACE="eth0"
 SSH_USER = "hduser"
 
-NAMENODE_HOST = "localhost"
-RESOURCEMANAGER_HOST = "localhost"
-SLAVE_HOSTS = ["localhost"]
+NAMENODE_HOST = "shittymachine23"
+RESOURCEMANAGER_HOST = "shittymachine23"
+SLAVE_HOSTS = ["nein", "shittymachine23"]
 #NAMENODE_HOST = "namenode.alexjf.net"
 #RESOURCEMANAGER_HOST = "resourcemanager.alexjf.net"
 #SLAVE_HOSTS = ["slave%d.alexjf.net" % i for i in range(1, 6)]
@@ -74,7 +74,7 @@ SLAVE_HOSTS = ["localhost"]
 
 # If you'll be running map reduce jobs, you should choose a host to be
 # the job tracker
-JOBTRACKER_HOST = ""
+JOBTRACKER_HOST = "shittymachine23"
 JOBTRACKER_PORT = 8021
 
 # If you'll run MapReduce jobs, you might want to set a JobHistory server.
