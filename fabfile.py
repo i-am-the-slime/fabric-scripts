@@ -150,7 +150,14 @@ def all():
     config()
     setupEnvironment()
     formatHdfs()
+    writeSlaves()
     installSpark()
+
+def writeSlaves():
+    slaves_file = HADOOP_PREFIX + "/etc/hadoop/slaves"
+    run("> %s" % slaves_file)
+    for slave in SLAVE_HOSTS:
+   	run( 'echo %s >> %s' % (slave, slaves_file) ) 
 
 def installDependencies():
     for requirement in REQUIREMENTS:
