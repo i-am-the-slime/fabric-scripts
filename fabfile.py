@@ -15,14 +15,17 @@ from fabric.context_managers import shell_env
 ###############################################################
 #  START OF YOUR CONFIGURATION (CHANGE FROM HERE, IF NEEDED)  #
 ###############################################################
-HADOOP_VERSION = "2.4.0"
+IS_CONNECTED = False
+HADOOP_VERSION = "2.5.0"
 HADOOP_PACKAGE = "hadoop-%s" % HADOOP_VERSION
+HADOOP_PACKAGE_FILE = HADOOP_PACKAGE + ".tar.gz"
 HADOOP_PACKAGE_URL = "http://apache.mirror.digionline.de/hadoop/common/%s/%s.tar.gz" % (HADOOP_PACKAGE, HADOOP_PACKAGE)
 HADOOP_PREFIX = "/home/hduser/%s" % HADOOP_PACKAGE
 HADOOP_CONF = os.path.join(HADOOP_PREFIX, "etc/hadoop")
 
-SPARK_VERSION = "1.0.0"
+SPARK_VERSION = "1.0.2"
 SPARK_PACKAGE = "spark-%s" % SPARK_VERSION
+SPARK_PACKAGE_FILE = SPARK_PACKAGE + "-bin-hadoop2.tgz"
 #SPARK_ADDR =        "http://ftp.halifax.rwth-aachen.de/apache/spark/spark-0.9.1/spark-0.9.1-bin-hadoop2.tgz"
 SPARK_PACKAGE_URL = "http://ftp.halifax.rwth-aachen.de/apache/spark/%s/%s-bin-hadoop2.tgz" % (SPARK_PACKAGE, SPARK_PACKAGE)
 SPARK_PREFIX = "/home/hduser/%s" % SPARK_PACKAGE
@@ -30,23 +33,26 @@ SPARK_PREFIX = "/home/hduser/%s" % SPARK_PACKAGE
 
 # Change this to the command you would use to install packages on the
 # remote hosts.
-PACKAGE_MANAGER_INSTALL = "apt-get install %s" # Debian/Ubuntu
+#PACKAGE_MANAGER_INSTALL = "apt-get install %s" # Debian/Ubuntu
 #PACKAGE_MANAGER_INSTALL = "pacman -S %s" # Arch Linux
 #PACKAGE_MANAGER_INSTALL = "yum install %s" # CentOS
-
+PACKAGE_MANAGER_INSTALL = "zypper install %s" # OpenSuse
+ 
 # Change this list to the list of packages required by Hadoop
 # In principle, should just be a JRE for Hadoop, Python
 # for the Hadoop Configuration replacement script and wget
 # to get the Hadoop package
-REQUIREMENTS = ["wget", "python", "openjdk-7-jdk"] # Debian/Ubuntu
+REQUIREMENTS = [] #current suse install
+#REQUIREMENTS = ["wget", "python", "openjdk-7-jdk"] # Debian/Ubuntu
 #REQUIREMENTS = ["wget", "python", "jre7-openjdk-headless"] # Arch Linux
 #REQUIREMENTS = ["wget", "python", "java-1.7.0-openjdk-devel"] # CentOS
 
-JAVA_HOME = "/usr/lib/jvm/java-7-openjdk-amd64"
+#JAVA_HOME = "/usr/lib/jvm/java-7-openjdk-amd64"
+JAVA_HOME = "/usr/lib64/jvm/java"
 
 ENVIRONMENT_FILE = "/home/hduser/.bashrc"
 ENVIRONMENT_VARIABLES = [
-                         ("JAVA_HOME", JAVA_HOME), # Debian/Ubuntu 64 bits
+                         ("JAVA_HOME", JAVA_HOME), # Debian/Ubuntu 64 bits not - works for OpenSuse now
                          #("JAVA_HOME", "/usr/lib/jvm/java-7-openjdk"), # Arch Linux
                          #("JAVA_HOME", "/usr/lib/jvm/java"), # CentOS
                          ("HADOOP_PREFIX", HADOOP_PREFIX),
@@ -55,15 +61,16 @@ ENVIRONMENT_VARIABLES = [
                          ("HADOOP_CONF_DIR",HADOOP_PREFIX+"/etc/hadoop"),
                          ("HADOOP_HDFS_HOME", HADOOP_PREFIX),
                          ("HADOOP_MAPRED_HOME", HADOOP_PREFIX),
-                         ("HADOOP_YARN_HOME", HADOOP_PREFIX)
+                         ("HADOOP_YARN_HOME", HADOOP_PREFIX),
+                         ("SPARK_HOME", SPARK_PREFIX)
                          ]
 
 NET_INTERFACE="eth0"
 SSH_USER = "hduser"
 
-NAMENODE_HOST = "shittymachine23"
-RESOURCEMANAGER_HOST = "shittymachine23"
-SLAVE_HOSTS = ["nein", "shittymachine23"]
+NAMENODE_HOST = "master"
+RESOURCEMANAGER_HOST = "master"
+SLAVE_HOSTS = ["threesome","squirting","romantic","rimming","orgy","milf","masturbation","lingerie","lesbian","interracial","hentai","hairy","gangbang","fisting","fetish","facials","doublepenetration","cumshot","creampie"]
 #NAMENODE_HOST = "namenode.alexjf.net"
 #RESOURCEMANAGER_HOST = "resourcemanager.alexjf.net"
 #SLAVE_HOSTS = ["slave%d.alexjf.net" % i for i in range(1, 6)]
@@ -74,12 +81,12 @@ SLAVE_HOSTS = ["nein", "shittymachine23"]
 
 # If you'll be running map reduce jobs, you should choose a host to be
 # the job tracker
-JOBTRACKER_HOST = "shittymachine23"
+JOBTRACKER_HOST = "master"
 JOBTRACKER_PORT = 8021
 
 # If you'll run MapReduce jobs, you might want to set a JobHistory server.
 # e.g: JOBHISTORY_HOST = "jobhistory.alexjf.net"
-JOBHISTORY_HOST = ""
+JOBHISTORY_HOST = "master"
 JOBHISTORY_PORT = 10020
 
 CORE_SITE_VALUES = {
@@ -93,26 +100,26 @@ HDFS_SITE_VALUES = {
 
 YARN_SITE_VALUES = {
     "yarn.resourcemanager.hostname": RESOURCEMANAGER_HOST,
-    "yarn.scheduler.minimum-allocation-mb": 128,
-    "yarn.scheduler.maximum-allocation-mb": 1024,
+    "yarn.scheduler.minimum-allocation-mb": 2048,
+    "yarn.scheduler.maximum-allocation-mb": 8192,
     "yarn.scheduler.minimum-allocation-vcores": 1,
-    "yarn.scheduler.maximum-allocation-vcores": 1,
-    "yarn.nodemanager.resource.memory-mb": 4096,
-    "yarn.nodemanager.resource.cpu-vcores": 4,
+    "yarn.scheduler.maximum-allocation-vcores": 8,
+    "yarn.nodemanager.resource.memory-mb": 8192,
+    "yarn.nodemanager.resource.cpu-vcores": 8,
     "yarn.log-aggregation-enable": "true",
     "yarn.nodemanager.aux-services": "mapreduce_shuffle",
 }
 
 MAPRED_SITE_VALUES = {
-    "yarn.app.mapreduce.am.resource.mb": 1024,
-    "yarn.app.mapreduce.am.command-opts": "-Xmx768m",
+    "yarn.app.mapreduce.am.resource.mb": 4096,
+    "yarn.app.mapreduce.am.command-opts": "-Xmx3280m",
     "mapreduce.framework.name": "yarn",
     "mapreduce.map.cpu.vcores": 1,
-    "mapreduce.map.memory.mb": 1024,
-    "mapreduce.map.java.opts": "-Xmx768m",
+    "mapreduce.map.memory.mb": 2048,
+    "mapreduce.map.java.opts": "-Xmx1640m",
     "mapreduce.reduce.cpu.vcores": 1,
-    "mapreduce.reduce.memory.mb": 1024,
-    "mapreduce.reduce.java.opts": "-Xmx768m",
+    "mapreduce.reduce.memory.mb": 4096,
+    "mapreduce.reduce.java.opts": "-Xmx3280m",
 }
 
 ##############################################################
@@ -153,6 +160,13 @@ def all():
     writeSlaves()
     installSpark()
 
+def install_all():
+    installDependencies()
+    install()
+    installSpark()
+    setupEnvironment()
+    writeSlaves()
+
 def writeSlaves():
     slaves_file = HADOOP_PREFIX + "/etc/hadoop/slaves"
     run("> %s" % slaves_file)
@@ -164,16 +178,18 @@ def installDependencies():
         sudo(PACKAGE_MANAGER_INSTALL % requirement)
 
 def installSpark():
-    install(SPARK_PREFIX, SPARK_PACKAGE, SPARK_PACKAGE_URL)
+    install(SPARK_PREFIX, SPARK_PACKAGE_FILE, SPARK_PACKAGE_URL)
+    run("ln -f -s %s %s" % (SPARK_PREFIX, "~/spark"))
 
-def install(prefix=HADOOP_PREFIX, package=HADOOP_PACKAGE, package_url=HADOOP_PACKAGE_URL):
+def install(prefix=HADOOP_PREFIX, package=HADOOP_PACKAGE_FILE, package_url=HADOOP_PACKAGE_URL):
     installDirectory = os.path.dirname(prefix)
     run("mkdir -p %s" % installDirectory)
     with cd(installDirectory):
         with settings(warn_only=True):
-            if run("test -f %s.tar.gz" % package).failed:
-                run("wget -O %s.tar.gz %s" % (package, package_url))
-        run("tar --overwrite -xf %s.tar.gz" % package)
+            if run("test -f %s" % package).failed:
+                get(package, package_url)
+        run("tar --overwrite -xf %s" % package)
+    run("ln -f -s %s %s" % (HADOOP_PREFIX, "~/hadoop"))
 
 def config():
     changeHadoopProperties("core-site.xml", CORE_SITE_VALUES)
@@ -195,6 +211,17 @@ def formatHdfs():
     if env.host == NAMENODE_HOST:
         cmd = "%s/bin/hdfs namenode -format" % HADOOP_PREFIX
         jrun(cmd)
+
+def get(package, package_url):
+    if IS_CONNECTED:
+    #if env.host == NAMENODE_HOST:
+        run("wget -O %s %s" % (package, package_url))
+        run("cp %s /srv/files/packages/%s" % (package,package))
+    else:
+        run("cp /srv/files/packages/%s %s" % (package, package))
+        
+        
+       
 
 def setupSelfReferences():
     privateIp = run("ifconfig %s | grep 'inet\s\+' | awk '{print $2}' | cut -d':' -f2" % NET_INTERFACE).strip()
